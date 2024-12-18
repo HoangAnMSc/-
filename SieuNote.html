@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スーパー メモ</title>
+    <link rel="icon" href="https://www.sozailab.jp/db_img/sozai/93517/fcd586613e14191e9850644e75b4ecf2.png" type="logo">
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin: 20px;
+            font-size: 2rem;
+            color: #333;
+        }
+
+        .add-note-btn {
+            margin: 20px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .add-note-btn:hover {
+            background-color: #45a049;
+        }
+
+        .note-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .note {
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 280px;
+            padding: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .note:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .note-title {
+            width: calc(100% - 60px);
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 5px;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .note-title:focus {
+            border-color: #4caf50;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button:hover {
+            background-color: #e53935;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: #4caf50;
+        }
+
+        .copy-button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background-color: #1976d2;
+        }
+
+        .copied-message {
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #4caf50;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>KGSTechのスーパー メモ</h1>
+    <button class="add-note-btn" id="addNoteButton">Add New Note</button>
+    <div class="note-container" id="notes"></div>
+
+    <script>
+        const notesContainer = document.getElementById('notes');
+        const addNoteButton = document.getElementById('addNoteButton');
+        const LOCAL_STORAGE_KEY = 'notesData';
+
+        // Load notes from localStorage
+        function loadNotes() {
+            const savedNotes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            savedNotes.forEach(note => createNote(note.title, note.content));
+        }
+
+        // Save notes to localStorage
+        function saveNotes() {
+            const notes = [];
+            document.querySelectorAll('.note').forEach(noteDiv => {
+                const title = noteDiv.querySelector('.note-title').value;
+                const content = noteDiv.querySelector('textarea').value;
+                notes.push({ title, content });
+            });
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(notes));
+        }
+
+        // Create a new note
+        function createNote(title = '', content = '') {
+            const noteDiv = document.createElement('div');
+            noteDiv.classList.add('note');
+
+            // Note Header
+            const noteHeader = document.createElement('div');
+            noteHeader.classList.add('note-header');
+
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.placeholder = 'Note Title...';
+            titleInput.classList.add('note-title');
+            titleInput.value = title;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.classList.add('delete-button');
+            deleteButton.addEventListener('click', () => {
+                notesContainer.removeChild(noteDiv);
+                saveNotes();
+            });
+
+            noteHeader.appendChild(titleInput);
+            noteHeader.appendChild(deleteButton);
+
+            // Textarea for Note Content
+            const textarea = document.createElement('textarea');
+            textarea.placeholder = "Write your note here...";
+            textarea.value = content;
+
+            // Copy Button
+            const copyButton = document.createElement('button');
+            copyButton.textContent = "Copy Note";
+            copyButton.classList.add('copy-button');
+            copyButton.addEventListener('click', () => {
+                textarea.select();
+                document.execCommand('copy');
+
+                // Show confirmation message
+                copiedMessage.style.display = 'block';
+                setTimeout(() => {
+                    copiedMessage.style.display = 'none';
+                }, 2000);
+            });
+
+            // Confirmation Message
+            const copiedMessage = document.createElement('div');
+            copiedMessage.textContent = "Note copied to clipboard!";
+            copiedMessage.classList.add('copied-message');
+
+            // Save changes when title or content changes
+            titleInput.addEventListener('input', saveNotes);
+            textarea.addEventListener('input', saveNotes);
+
+            // Append all elements to the note div
+            noteDiv.appendChild(noteHeader);
+            noteDiv.appendChild(textarea);
+            noteDiv.appendChild(copyButton);
+            noteDiv.appendChild(copiedMessage);
+
+            // Append the note to the container
+            notesContainer.appendChild(noteDiv);
+        }
+
+        // Load existing notes on page load
+        loadNotes();
+
+        // Add a new note when clicking the "Add New Note" button
+        addNoteButton.addEventListener('click', () => {
+            createNote();
+            saveNotes();
+        });
+    </script>
+</body>
+</html>
